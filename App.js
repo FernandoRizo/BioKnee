@@ -8,6 +8,12 @@ import RegisterScreen from './PatientRegisterScreen';
 import RoleSelectionScreen from './RoleSelection';
 import DoctorRegisterScreen from './DoctorRegisterScreen';
 import PatientRegisterScreen from './PatientRegisterScreen';
+import { PatientProvider } from './PatientContext';
+import DoctorHomeScreen from './DoctorHomeScreen';
+import RegisterPatientScreen from './RegisterPatientScreen';
+import PatientListScreen from './PatientListScreen';
+import PatientDetailScreen from './PatientDetailScreen';
+import AngleResultScreen from './AngleResultScreen';
 
 
 
@@ -15,6 +21,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+    <PatientProvider>
     <NavigationContainer>
      
       <Stack.Navigator initialRouteName="Home">
@@ -49,8 +56,14 @@ export default function App() {
           options={{headerShown: false}}
         
         />
+        <Stack.Screen name="DoctorHomeScreen" component={DoctorHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="RegisterPatient" component={RegisterPatientScreen} options={{ title: 'Registrar Paciente' }} />
+        <Stack.Screen name="PatientList" component={PatientListScreen} options={{ title: 'Mis Pacientes' }} />
+        <Stack.Screen name="PatientDetail" component={PatientDetailScreen} options={{ title: 'Detalle del Paciente' }} />
+        <Stack.Screen name='AngleResult' component={AngleResultScreen} options={{title: "Resultados"}}/>
         
       </Stack.Navigator>
     </NavigationContainer>
+    </PatientProvider>
   );
 }

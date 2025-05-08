@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: mongo:5
+    container_name: bk_mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  userservice:
+    build: ./userservice
+    container_name: bk_users
+    restart: unless-stopped
+    # En lugar de env_file, definimos aquí las vars:
+    environment:
+      - SECRET_KEY=clave_secreta
+      - MONGO_URL=mongodb://mongo:27017/users
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  segmenter:
+    build: ./segmenter
+    container_name: bk_segmenter
+    restart: unless-stopped
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/rodilla_tasks
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

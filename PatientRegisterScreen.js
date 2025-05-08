@@ -1,5 +1,26 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+// PatientRegisterScreen.js
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ImageBackground,
+  StatusBar,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+
+const { width, height } = Dimensions.get('window');
+const background = require('./assets/FondoApp.png');
 
 const PatientRegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -10,7 +31,6 @@ const PatientRegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
@@ -19,23 +39,15 @@ const PatientRegisterScreen = ({ navigation }) => {
       Alert.alert('Error', 'Debes completar todos los campos');
       return;
     }
-    
+
     setLoading(true);
     try {
-      // Realiza la petición POST al endpoint de registro de pacientes
       const response = await fetch('http://10.0.0.6:3000/register-patient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,      // Correo electrónico
-          curp,       // CURP
-          fullName,   // Nombre completo
-          password,   // Contraseña
-        }),
+        body: JSON.stringify({ email, curp, fullName, password }),
       });
-      
       const data = await response.json();
-      
       if (response.ok) {
         Alert.alert('Registro exitoso', data.message || 'Paciente registrado');
         navigation.navigate('LoginScreen');
@@ -51,96 +63,134 @@ const PatientRegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registro de Pacientes</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="CURP"
-        value={curp}
-        onChangeText={setCurp}
-        autoCapitalize="characters"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre completo"
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Confirmar contraseña"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
-      
-      {loading ? (
-        <ActivityIndicator size="large" color="#28a745" />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarse</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <ImageBackground
+      source={background}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+    >
+      <StatusBar barStyle="light-content" />
+      <View style={styles.overlay} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>Registro de Pacientes</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            placeholderTextColor="#666"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="CURP"
+            placeholderTextColor="#666"
+            value={curp}
+            onChangeText={setCurp}
+            autoCapitalize="characters"
+            maxLength={18}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre completo"
+            placeholderTextColor="#666"
+            value={fullName}
+            onChangeText={setFullName}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            placeholderTextColor="#666"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Confirmar contraseña"
+            placeholderTextColor="#666"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#40E0D0" />
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={handleRegister}>
+              <Text style={styles.buttonText}>Registrarse</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 export default PatientRegisterScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  flex: { flex: 1 },
+  background: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
+    width,
+    height,
+  },
+  backgroundImage: {
+    resizeMode: 'cover',
+    opacity: 0.15,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  container: {
     padding: 20,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
+    marginBottom: 30,
     textAlign: 'center',
   },
   input: {
-    backgroundColor: '#fff',
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    borderRadius: 8,
-    marginVertical: 5,
     fontSize: 16,
-    borderColor: '#ccc',
-    borderWidth: 1,
+    color: '#333',
+    marginVertical: 8,
   },
   button: {
-    backgroundColor: '#28a745',
+    width: '100%',
+    backgroundColor: '#40E0D0',  // aqua
     paddingVertical: 15,
     borderRadius: 8,
-    marginVertical: 10,
+    marginTop: 20,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
 });

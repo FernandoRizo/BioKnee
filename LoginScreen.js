@@ -1,146 +1,167 @@
+// LoginScreen.js
+
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ImageBackground,
+  StatusBar,
+  Dimensions
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+
+const { width, height } = Dimensions.get('window');
+const API_BASE = 'http://10.0.0.6:3000'; // Ajusta si cambias host
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState(''); // Se utiliza username en lugar de email
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      Alert.alert('Error', 'Por favor, complete todos los campos.');
-      return;
-    }
-
     setLoading(true);
     try {
-      // Petición POST al microservicio de usuarios en Node.js
-      const response = await fetch('http://10.0.0.6:3000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // Importante: el servidor espera "username" y "password"
-        body: JSON.stringify({ 
-          username: username, 
-          password: password 
-        }),
+      const response = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
       });
-
       const data = await response.json();
-
-      if (response.ok) {
-        // Se espera que el servidor retorne { token: '<JWT>' }
-        if (data.token) {
-          // Guardar el token en AsyncStorage
-          await AsyncStorage.setItem('token', data.token);
-          Alert.alert('Éxito', 'Inicio de sesión exitoso');
-          // Navegar a la pantalla principal
-          navigation.navigate('Home');
+      
+      if (response.ok && data.token) {
+        const token = data.token;
+        const profileRes = await fetch(`${API_BASE}/profile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          }
+        });
+        const profile = await profileRes.json();
+        
+        if (profile.role === "Doctor") {
+          await AsyncStorage.setItem('token', token);
+          navigation.replace("DoctorHomeScreen");
+        } else if (profile.role === "Patient") {
+          await AsyncStorage.setItem('token', token);
+          navigation.replace("PatientHome");
         } else {
-          Alert.alert('Error', data.error || 'Error al iniciar sesión');
+          Alert.alert("Error", "Rol de usuario desconocido");
         }
       } else {
-        Alert.alert('Error', data.error || 'Error en la respuesta del servidor');
+        Alert.alert("Error en el login", data.error || "Datos incorrectos");
       }
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      Alert.alert('Error', 'Ocurrió un error al conectarse al servidor');
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "No se pudo conectar al servidor");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
+    <ImageBackground
+      source={require('./assets/FondoApp.png')}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+    >
+      <StatusBar barStyle="light-content" />
+      <View style={styles.overlay}>
+        <Text style={styles.title}>Iniciar Sesión</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de usuario"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electrónico"
+          placeholderTextColor="rgba(255,255,255,0.7)"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          placeholderTextColor="rgba(255,255,255,0.7)"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#007BFF" />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-      )}
-
-      <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>¿No tienes cuenta?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
-          <Text style={styles.registerLink}> Registrarse</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.buttonText}>Entrar</Text>
+          }
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
-    alignItems: 'center',
+    width,
+    height
+  },
+  backgroundImage: {
+    resizeMode: 'cover',
+    opacity: 0.3
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    padding: 20
   },
   title: {
-    fontSize: 24,
-    marginBottom: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
+    marginBottom: 30
   },
   input: {
     width: '100%',
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginVertical: 5,
-    fontSize: 16,
-    borderColor: '#ccc',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#FFF',
     borderWidth: 1,
+    color: '#FFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginBottom: 15
   },
   button: {
-    backgroundColor: '#007BFF',
     width: '100%',
     paddingVertical: 15,
-    borderRadius: 8,
-    marginVertical: 10,
+    borderRadius: 30,
+    backgroundColor: 'rgba(32,201,151,0.9)', // mismo turquesa suave
+    borderWidth: 2,
+    borderColor: '#FFF',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  registerContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  registerText: {
-    fontSize: 14,
-    color: '#555',
-  },
-  registerLink: {
-    fontSize: 14,
-    color: '#007BFF',
-    textDecorationLine: 'underline',
-    marginLeft: 4,
-  },
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '600'
+  }
 });

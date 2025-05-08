@@ -28,4 +28,4 @@ doctorSchema.methods.comparePassword = function(candidatePassword) {
 };
 
 // Se exporta el modelo 'Doctor' usando el esquema doctorSchema y se guardará en la colección 'doctors'
-module.exports = mongoose.model('Doctor', doctorSchema, 'doctors');
+module.exports = mongoose.model('Doctor', doctorSchema);

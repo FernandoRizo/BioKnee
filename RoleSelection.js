@@ -1,52 +1,98 @@
+// RoleSelectionScreen.js
+
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  StatusBar,
+  Dimensions
+} from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 const RoleSelectionScreen = ({ navigation }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Selecciona tu rol</Text>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#28a745' }]}
-        onPress={() => navigation.navigate('PatientRegisterScreen')}
-      >
-        <Text style={styles.buttonText}>Paciente</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#007BFF' }]}
-        onPress={() => navigation.navigate('DoctorRegisterScreen')} 
-      >
-        <Text style={styles.buttonText}>Médico</Text>
-      </TouchableOpacity>
-    </View>
+    <ImageBackground
+      source={require('./assets/FondoApp.png')}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+    >
+      <StatusBar barStyle="light-content" />
+      <View style={styles.overlay}>
+        <Text style={styles.title}>Selecciona tu rol</Text>
+
+        <TouchableOpacity
+          style={[styles.button, styles.patientButton]}
+          onPress={() => navigation.navigate('PatientRegisterScreen')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Paciente</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.doctorButton]}
+          onPress={() => navigation.navigate('DoctorRegisterScreen')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Médico</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 
 export default RoleSelectionScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
-    alignItems: 'center',
+    width,
+    height,
+  },
+  backgroundImage: {
+    resizeMode: 'cover',
+    opacity: 0.5,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFF',
+    marginBottom: 30,
+    textAlign: 'center',
   },
   button: {
     width: '100%',
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 30,
     marginVertical: 10,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  patientButton: {
+    backgroundColor: 'rgba(32,201,151,0.8)',  // turquesa suave
+  },
+  doctorButton: {
+    backgroundColor: 'rgba(32,144,230,0.8)',  // azul suave
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: '600',
   },
 });

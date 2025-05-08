@@ -6,6 +6,7 @@ const patientSchema = new mongoose.Schema({
     curp: { type: String, unique: true, required: true },
     fullName: { type: String, required: true },
     password: { type: String, required: true },
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
     role: { type: String, default: 'patient' }
 });
 
